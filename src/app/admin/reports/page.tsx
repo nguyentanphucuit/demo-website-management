@@ -48,6 +48,7 @@ interface ChartCanvasProps {
 function ChartCanvas({ type, data, options }: ChartCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -61,11 +62,25 @@ function ChartCanvas({ type, data, options }: ChartCanvasProps) {
     chartRef.current = new Chart(canvasRef.current, {
       type: type as "line" | "bar" | "doughnut",
       data,
-      options,
+      options: {
+        ...options,
+        responsive: true,
+        maintainAspectRatio: false,
+      },
     });
+
+    // Handle window resize
+    const handleResize = () => {
+      if (chartRef.current) {
+        chartRef.current.resize();
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
 
     // Cleanup on unmount
     return () => {
+      window.removeEventListener("resize", handleResize);
       if (chartRef.current) {
         chartRef.current.destroy();
       }
@@ -73,7 +88,7 @@ function ChartCanvas({ type, data, options }: ChartCanvasProps) {
   }, [type, data, options]);
 
   return (
-    <div className="h-[300px]">
+    <div ref={containerRef} className="h-[250px] sm:h-[300px] md:h-[350px] w-full">
       <canvas ref={canvasRef} />
     </div>
   );
@@ -220,15 +235,22 @@ export default function ReportsPage() {
     plugins: {
       legend: {
         position: "bottom" as const,
+        labels: {
+          boxWidth: 12,
+          padding: 8,
+          font: {
+            size: 11,
+          },
+        },
       },
     },
   };
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Báo Cáo & Thống Kê</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">Báo Cáo & Thống Kê</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng Doanh Thu</CardTitle>
@@ -282,10 +304,10 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <Card>
           <CardHeader>
-            <CardTitle>Doanh Thu Theo Tháng</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Doanh Thu Theo Tháng</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartCanvas
@@ -298,7 +320,7 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Sản Phẩm Bán Chạy</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Sản Phẩm Bán Chạy</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartCanvas
@@ -310,10 +332,10 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Trạng Thái Đơn Hàng</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Trạng Thái Đơn Hàng</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartCanvas
@@ -326,7 +348,7 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Doanh Thu Theo Tháng (Bar Chart)</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Doanh Thu Theo Tháng (Bar Chart)</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartCanvas
